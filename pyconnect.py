@@ -186,6 +186,20 @@ class PyConnect(QWidget):
         self.layout_buttons.itemAt(1).widget().setEnabled(False)  # Reconectar
         self.layout_buttons.itemAt(2).widget().setEnabled(False)  # Desconectar
 
+    def closeEvent(self, event):
+        '''
+        Function called when the window is closed
+
+        Args:
+            event (): event
+        '''
+        reply = QMessageBox.question(self, 'Sair', 'Deseja sair?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            # subprocess.run(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)', shell=True)
+            os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+        else:
+            event.ignore()
+
     def sudo_psw(self):
         '''
         Function to get the sudo password from the user
