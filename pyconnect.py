@@ -2,7 +2,7 @@ import os
 from sys import exit
 from subprocess import check_output, CalledProcessError
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QMessageBox, QComboBox, QInputDialog
+    QPushButton, QMessageBox, QComboBox, QInputDialog, QDesktopWidget
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QFile, QTextStream
 from database import Database
@@ -294,6 +294,16 @@ class PyConnect(QWidget):
 
         return True
 
+    def move_center(self):
+        '''
+        Function to move the window to the center of the screen
+        '''
+        screen = QDesktopWidget().screenGeometry()
+        window = self.geometry()
+        x = (screen.width() - window.width()) // 2
+        y = (screen.height() - window.height()) // 2
+        self.move(x, y)
+
 
 if __name__ == '__main__':
     pyconnect = PyConnect()
@@ -302,6 +312,7 @@ if __name__ == '__main__':
     pyconnect.window_buttons()
     pyconnect.window_layout()
     pyconnect.connect_buttons()
+    pyconnect.move_center()
     pyconnect.show()
     pyconnect.sudo_psw()
     pyconnect.app.exec_()
