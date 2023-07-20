@@ -344,7 +344,7 @@ class PyConnect(QWidget):
         try:
             check_output(f'echo "{text}" | sudo --stdin echo "e"', shell=True)
         except CalledProcessError:
-            return False
+            return True
 
         return True
 

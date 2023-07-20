@@ -11,7 +11,7 @@ class Database():
         '''
         Constructor to init database
         '''
-        self.db = sqlite3.connect(f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect.db')
+        self.db = sqlite3.connect('pyconnect.db')
 
     def create_struct(self):
         '''
