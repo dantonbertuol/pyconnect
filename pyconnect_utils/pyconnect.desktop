@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PyConnect
+Icon=pyconnect-icon
+Exec=pyconnect
+Terminal=true
+Keywords=VPN;Connect;Pyconnect
+StartupNotify=true
