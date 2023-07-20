@@ -355,16 +355,6 @@ class PyConnect(QWidget):
 
         return True
 
-    def move_center(self):
-        '''
-        Function to move the window to the center of the screen
-        '''
-        screen = QDesktopWidget().screenGeometry()
-        window = self.geometry()
-        x = (screen.width() - window.width()) // 2
-        y = (screen.height() - window.height()) // 2
-        self.move(x, y)
-
 
 if __name__ == '__main__':
     pyconnect = PyConnect()
@@ -373,7 +363,6 @@ if __name__ == '__main__':
     pyconnect.window_buttons()
     pyconnect.window_layout()
     pyconnect.connect_buttons()
-    pyconnect.move_center()
     pyconnect.show()
     pyconnect.sudo_psw()
     pyconnect.tray_icon()
