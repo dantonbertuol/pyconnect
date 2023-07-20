@@ -178,10 +178,6 @@ class PyConnect(QWidget):
             self.alert('Preencha todos os campos!')
             return
 
-        # subprocess.run(
-        #     f'echo "{self.sudopsw}" | sudo --stdin echo "{psw}" | sudo openconnect --protocol=gp {server} '
-        #     f'--user={user} --servercert {server_cert} --passwd-on-stdin &', shell=True)
-
         os.system(
             f'echo "{self.sudopsw}" | sudo --stdin echo "{psw}" | sudo openconnect --protocol=gp {server} '
             f'--user={user} --servercert {server_cert} --passwd-on-stdin &')
@@ -205,7 +201,6 @@ class PyConnect(QWidget):
         '''
         Function to reconnect to OpenConnect
         '''
-        # subprocess.run(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)', shell=True)
         os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
         self.connect()
 
@@ -213,7 +208,6 @@ class PyConnect(QWidget):
         '''
         Function to disconnect from OpenConnect
         '''
-        # subprocess.run(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)', shell=True)
         os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
         self.layout_form.itemAt(7).widget().setEnabled(True)  # Servidor
@@ -247,7 +241,6 @@ class PyConnect(QWidget):
         '''
         reply = QMessageBox.question(self, 'Sair', 'Deseja sair?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            # subprocess.run(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)', shell=True)
             os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
         else:
             event.ignore()
