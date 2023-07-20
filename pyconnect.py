@@ -4,7 +4,7 @@ from subprocess import check_output, CalledProcessError
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
     QPushButton, QMessageBox, QComboBox, QInputDialog
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QFile, QTextStream
 from database import Database
 
 ICON_PATH = f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-icon.png'
@@ -26,6 +26,11 @@ class PyConnect(QWidget):
         super().__init__()
         self.app.setApplicationName('PyConnect')
 
+        file = QFile(f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-dark.qss')
+        file.open(QFile.ReadOnly | QFile.Text)
+        stream = QTextStream(file)
+
+        self.app.setStyleSheet(stream.readAll())
         self.app.setWindowIcon(QIcon(ICON_PATH))
 
         self.layout_ = QVBoxLayout()
