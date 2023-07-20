@@ -2,7 +2,7 @@ import os
 from sys import exit
 from subprocess import check_output, CalledProcessError
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QMessageBox, QComboBox, QInputDialog, QDesktopWidget
+    QPushButton, QMessageBox, QComboBox, QInputDialog, QDesktopWidget, QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QFile, QTextStream
 from database import Database
@@ -17,7 +17,6 @@ class PyConnect(QWidget):
     Args:
         QWidget: Class to create the window
     '''
-
     def __init__(self) -> None:
         '''
         Function to initialize the application
@@ -39,6 +38,8 @@ class PyConnect(QWidget):
         self.database = Database()
         self.database.create_struct()
         self.sudopsw: str = ''
+        self.tray = QSystemTrayIcon(self)
+        self.menu = QMenu(self)
 
     def window_combobox(self):
         '''
@@ -109,6 +110,40 @@ class PyConnect(QWidget):
         self.setLayout(self.layout_)
         self.setFixedSize(350, 250)
 
+    def tray_icon(self):
+        '''
+        Function to create the tray icon
+        '''
+        self.tray.setIcon(QIcon(ICON_PATH))
+        self.tray.setVisible(True)
+
+        action_open = QAction('Abrir', self)
+        action_open.triggered.connect(self.show_window)
+        action_open.setEnabled(True)
+
+        action_connect = QAction('Conectar', self)
+        action_connect.triggered.connect(self.connect)
+        action_connect.setEnabled(True)
+
+        action_reconnect = QAction('Reconectar', self)
+        action_reconnect.triggered.connect(self.reconnect)
+        action_reconnect.setEnabled(False)
+
+        action_disconnect = QAction('Desconectar', self)
+        action_disconnect.triggered.connect(self.disconnect)
+        action_disconnect.setEnabled(False)
+
+        action_exit = QAction('Sair', self)
+        action_exit.triggered.connect(self.app.quit)
+
+        self.menu.addAction(action_open)
+        self.menu.addAction(action_connect)
+        self.menu.addAction(action_reconnect)
+        self.menu.addAction(action_disconnect)
+        self.menu.addAction(action_exit)
+
+        self.tray.setContextMenu(self.menu)
+
     def save(self):
         '''
         Function to save the user data
@@ -161,6 +196,11 @@ class PyConnect(QWidget):
         self.layout_buttons.itemAt(1).widget().setEnabled(True)  # Reconectar
         self.layout_buttons.itemAt(2).widget().setEnabled(True)  # Desconectar
 
+        menu_actions = self.menu.actions()
+        menu_actions[1].setEnabled(False)  # Conectar
+        menu_actions[2].setEnabled(True)  # Reconectar
+        menu_actions[3].setEnabled(True)  # Desconectar
+
     def reconnect(self):
         '''
         Function to reconnect to OpenConnect
@@ -185,6 +225,18 @@ class PyConnect(QWidget):
 
         self.layout_buttons.itemAt(1).widget().setEnabled(False)  # Reconectar
         self.layout_buttons.itemAt(2).widget().setEnabled(False)  # Desconectar
+
+        menu_actions = self.menu.actions()
+        menu_actions[1].setEnabled(True)  # Conectar
+        menu_actions[2].setEnabled(False)  # Reconectar
+        menu_actions[3].setEnabled(False)  # Desconectar
+
+    def show_window(self):
+        '''
+        Function to show the window
+        '''
+        self.setVisible(True)
+        self.activateWindow()
 
     def closeEvent(self, event):
         '''
@@ -315,4 +367,5 @@ if __name__ == '__main__':
     pyconnect.move_center()
     pyconnect.show()
     pyconnect.sudo_psw()
+    pyconnect.tray_icon()
     pyconnect.app.exec_()
