@@ -50,7 +50,7 @@ class PyConnect(QWidget):
         users = self.database.select_all()
         cb_user.addItem('Selecione...')
         for user in users:
-            cb_user.addItem(user[2])
+            cb_user.addItem(user[0])
 
         self.layout_form.addWidget(label_saved_user, 1, 0, 1, 1)
         self.layout_form.addWidget(cb_user, 1, 3, 1, 5)

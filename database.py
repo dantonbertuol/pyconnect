@@ -6,6 +6,7 @@ class Database():
     '''
     Database class
     '''
+
     def __init__(self) -> None:
         '''
         Constructor to init database
@@ -71,6 +72,6 @@ class Database():
         '''
         cursor = self.db.cursor()
         cursor.execute('''
-            SELECT server, server_cert, user, password FROM user;
+            SELECT user FROM user;
         ''')
         return cursor.fetchall()
