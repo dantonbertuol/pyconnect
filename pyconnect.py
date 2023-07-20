@@ -252,6 +252,15 @@ class PyConnect(QWidget):
         else:
             event.ignore()
 
+    def hideEvent(self, event):
+        '''
+        Function called when the window is hidden
+
+        Args:
+            event: event
+        '''
+        self.setVisible(False)
+
     def sudo_psw(self):
         '''
         Function to get the sudo password from the user
