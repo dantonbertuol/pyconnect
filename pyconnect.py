@@ -7,7 +7,7 @@ from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QFile, QTextStream
 from database import Database
 
-ICON_PATH = f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-icon.png'
+ICON_PATH = 'pyconnect_utils/pyconnect-icon.png'
 
 
 class PyConnect(QWidget):
@@ -26,7 +26,7 @@ class PyConnect(QWidget):
         super().__init__()
         self.app.setApplicationName('PyConnect')
 
-        file = QFile(f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-dark.qss')
+        file = QFile('pyconnect_utils/pyconnect-dark.qss')
         file.open(QFile.ReadOnly | QFile.Text)
         stream = QTextStream(file)
 
