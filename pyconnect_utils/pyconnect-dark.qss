@@ -171,44 +171,6 @@ QCheckBox::indicator {
   width: 14px;
 }
 
-QCheckBox::indicator:unchecked {
-  image: url(":/qss_icons/dark/rc/checkbox_unchecked.png");
-}
-
-QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:unchecked:focus, QCheckBox::indicator:unchecked:pressed {
-  border: none;
-  image: url(":/qss_icons/dark/rc/checkbox_unchecked_focus.png");
-}
-
-QCheckBox::indicator:unchecked:disabled {
-  image: url(":/qss_icons/dark/rc/checkbox_unchecked_disabled.png");
-}
-
-QCheckBox::indicator:checked {
-  image: url(":/qss_icons/dark/rc/checkbox_checked.png");
-}
-
-QCheckBox::indicator:checked:hover, QCheckBox::indicator:checked:focus, QCheckBox::indicator:checked:pressed {
-  border: none;
-  image: url(":/qss_icons/dark/rc/checkbox_checked_focus.png");
-}
-
-QCheckBox::indicator:checked:disabled {
-  image: url(":/qss_icons/dark/rc/checkbox_checked_disabled.png");
-}
-
-QCheckBox::indicator:indeterminate {
-  image: url(":/qss_icons/dark/rc/checkbox_indeterminate.png");
-}
-
-QCheckBox::indicator:indeterminate:disabled {
-  image: url(":/qss_icons/dark/rc/checkbox_indeterminate_disabled.png");
-}
-
-QCheckBox::indicator:indeterminate:focus, QCheckBox::indicator:indeterminate:hover, QCheckBox::indicator:indeterminate:pressed {
-  image: url(":/qss_icons/dark/rc/checkbox_indeterminate_focus.png");
-}
-
 /* QGroupBox --------------------------------------------------------------
 
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qgroupbox

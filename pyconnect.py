@@ -3,7 +3,7 @@ from sys import exit
 from subprocess import check_output, CalledProcessError
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
     QPushButton, QMessageBox, QComboBox, QInputDialog, QCheckBox, QSystemTrayIcon, QMenu, QAction
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtCore import Qt, QFile, QTextStream
 from database import Database
 
@@ -54,18 +54,21 @@ class PyConnect(QWidget):
             cb_user.addItem(user[0])
 
         self.layout_form.addWidget(label_saved_user, 1, 0, 1, 1)
-        self.layout_form.addWidget(cb_user, 1, 3, 1, 5)
+        self.layout_form.addWidget(cb_user, 1, 3, 1, 6)
 
     def window_form(self):
         '''
         Function to create the form
         '''
         label_title = QLabel('PyConnect')
+        label_icon = QLabel()
+        label_icon.setPixmap(QPixmap(ICON_PATH).scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         myFont = QFont()
         myFont.setBold(True)
         myFont.setPointSize(20)
         label_title.setFont(myFont)
-        self.layout_form.addWidget(label_title, 0, 0, 1, 8, Qt.AlignCenter)
+        self.layout_form.addWidget(label_icon, 0, 0, 1, 1, Qt.AlignCenter)
+        self.layout_form.addWidget(label_title, 0, 1, 1, 6, Qt.AlignCenter)
 
         label_server = QLabel('Servidor')
         label_user = QLabel('Usuário')
@@ -81,9 +84,9 @@ class PyConnect(QWidget):
         tf_user = QLineEdit()
         tf_password = QLineEdit()
         tf_password.setEchoMode(QLineEdit.Password)
-        self.layout_form.addWidget(tf_server, 3, 3, 1, 5)
-        self.layout_form.addWidget(tf_server_cert, 5, 3, 1, 5)
-        self.layout_form.addWidget(tf_user, 7, 3, 1, 5)
+        self.layout_form.addWidget(tf_server, 3, 3, 1, 6)
+        self.layout_form.addWidget(tf_server_cert, 5, 3, 1, 6)
+        self.layout_form.addWidget(tf_user, 7, 3, 1, 6)
         self.layout_form.addWidget(tf_password, 9, 3)
 
         check_save_password = QCheckBox()
@@ -153,29 +156,20 @@ class PyConnect(QWidget):
         '''
         Function to save the user data
         '''
-        server = self.layout_form.itemAt(7).widget()
-        server_cert = self.layout_form.itemAt(8).widget()
-        user = self.layout_form.itemAt(9).widget()
-        psw = self.layout_form.itemAt(10).widget()
-        check_psw = self.layout_form.itemAt(11).widget().isChecked()
+        server = self.layout_form.itemAt(8).widget()
+        server_cert = self.layout_form.itemAt(9).widget()
+        user = self.layout_form.itemAt(10).widget()
+        psw = self.layout_form.itemAt(11).widget()
+        check_psw = self.layout_form.itemAt(12).widget().isChecked()
 
         if len(self.database.select(user.text())) > 0:
             self.alert('Usuário já existe!')
             return
 
         if check_psw:
-            psw = self.layout_form.itemAt(10).widget()
+            psw = self.layout_form.itemAt(11).widget()
 
-        if server.text() == '' or user.text() == '' or (psw.text() == '' and check_psw) or server_cert.text() == '':
-            self.alert('Preencha todos os campos!')
-            if server.text() == '':
-                server.setFocus()
-            elif server_cert.text() == '':
-                server_cert.setFocus()
-            elif user.text() == '':
-                user.setFocus()
-            elif psw.text() == '' and check_psw:
-                psw.setFocus()
+        if not self.valid_fields('save', [server, server_cert, user, psw, check_psw]):
             return
 
         self.database.insert(server.text(), user.text(), psw.text(), server_cert.text())
@@ -186,25 +180,24 @@ class PyConnect(QWidget):
         '''
         Function to connect to the OpenConnect
         '''
-        server = self.layout_form.itemAt(7).widget().text()
-        server_cert = self.layout_form.itemAt(8).widget().text()
-        user = self.layout_form.itemAt(9).widget().text()
-        psw = self.layout_form.itemAt(10).widget().text()
+        server = self.layout_form.itemAt(8).widget()
+        server_cert = self.layout_form.itemAt(9).widget()
+        user = self.layout_form.itemAt(10).widget()
+        psw = self.layout_form.itemAt(11).widget()
 
-        if server == '' or user == '' or psw == '' or server_cert == '':
-            self.alert('Preencha todos os campos!')
+        if not self.valid_fields('connect', [server, server_cert, user, psw, True]):
             return
 
         os.system(
             f'echo "{self.sudopsw}" | sudo --stdin echo "{psw}" | sudo openconnect --protocol=gp {server} '
             f'--user={user} --servercert {server_cert} --passwd-on-stdin &')
         self.layout_buttons.itemAt(0).widget().setEnabled(False)  # Conectar
-        self.layout_form.itemAt(7).widget().setEnabled(False)  # Servidor
-        self.layout_form.itemAt(8).widget().setEnabled(False)  # Certificado
-        self.layout_form.itemAt(9).widget().setEnabled(False)  # Usuário
-        self.layout_form.itemAt(10).widget().setEnabled(False)  # Senha
-        self.layout_form.itemAt(11).widget().setEnabled(False)  # Checkbox Salvar senha
-        self.layout_form.itemAt(12).widget().setEnabled(False)  # Salvar
+        self.layout_form.itemAt(8).widget().setEnabled(False)  # Servidor
+        self.layout_form.itemAt(9).widget().setEnabled(False)  # Certificado
+        self.layout_form.itemAt(10).widget().setEnabled(False)  # Usuário
+        self.layout_form.itemAt(11).widget().setEnabled(False)  # Senha
+        self.layout_form.itemAt(12).widget().setEnabled(False)  # Checkbox Salvar senha
+        self.layout_form.itemAt(13).widget().setEnabled(False)  # Salvar
         self.layout_form.itemAt(1).widget().setEnabled(False)  # Combobox
 
         self.layout_buttons.itemAt(1).widget().setEnabled(True)  # Reconectar
@@ -228,12 +221,12 @@ class PyConnect(QWidget):
         '''
         os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
-        self.layout_form.itemAt(7).widget().setEnabled(True)  # Servidor
-        self.layout_form.itemAt(8).widget().setEnabled(True)  # Certificado
-        self.layout_form.itemAt(9).widget().setEnabled(True)  # Usuário
-        self.layout_form.itemAt(10).widget().setEnabled(True)  # Senha
-        self.layout_form.itemAt(11).widget().setEnabled(True)  # Checkbox Salvar senha
-        self.layout_form.itemAt(12).widget().setEnabled(True)  # Salvar
+        self.layout_form.itemAt(8).widget().setEnabled(True)  # Servidor
+        self.layout_form.itemAt(9).widget().setEnabled(True)  # Certificado
+        self.layout_form.itemAt(10).widget().setEnabled(True)  # Usuário
+        self.layout_form.itemAt(11).widget().setEnabled(True)  # Senha
+        self.layout_form.itemAt(12).widget().setEnabled(True)  # Checkbox Salvar senha
+        self.layout_form.itemAt(13).widget().setEnabled(True)  # Salvar
         self.layout_form.itemAt(1).widget().setEnabled(True)  # Combobox
 
         self.layout_buttons.itemAt(1).widget().setEnabled(False)  # Reconectar
@@ -295,7 +288,7 @@ class PyConnect(QWidget):
         '''
         Function to connect the buttons to their respective functions
         '''
-        btn_save = self.layout_form.itemAt(12).widget()
+        btn_save = self.layout_form.itemAt(13).widget()
         btn_save.clicked.connect(self.save)
 
         btn_connect = self.layout_buttons.itemAt(0).widget()
@@ -316,17 +309,17 @@ class PyConnect(QWidget):
         '''
         cb_user = self.layout_form.itemAt(1).widget()
         if cb_user.currentIndex() == 0:
-            self.layout_form.itemAt(7).widget().setText('')  # Servidor
-            self.layout_form.itemAt(8).widget().setText('')  # Certificado
-            self.layout_form.itemAt(9).widget().setText('')  # Usuário
-            self.layout_form.itemAt(10).widget().setText('')  # Senha
+            self.layout_form.itemAt(8).widget().setText('')  # Servidor
+            self.layout_form.itemAt(9).widget().setText('')  # Certificado
+            self.layout_form.itemAt(10).widget().setText('')  # Usuário
+            self.layout_form.itemAt(11).widget().setText('')  # Senha
             return
 
         infos = self.database.select(cb_user.currentText())
-        self.layout_form.itemAt(7).widget().setText(infos[0][0])
-        self.layout_form.itemAt(8).widget().setText(infos[0][1])
-        self.layout_form.itemAt(9).widget().setText(infos[0][2])
-        self.layout_form.itemAt(10).widget().setText(infos[0][3])
+        self.layout_form.itemAt(8).widget().setText(infos[0][0])
+        self.layout_form.itemAt(9).widget().setText(infos[0][1])
+        self.layout_form.itemAt(10).widget().setText(infos[0][2])
+        self.layout_form.itemAt(11).widget().setText(infos[0][3])
 
     def cb_add(self, user: str):
         '''
@@ -363,6 +356,34 @@ class PyConnect(QWidget):
         try:
             check_output(f'echo "{text}" | sudo --stdin echo "e"', shell=True)
         except CalledProcessError:
+            return False
+
+        return True
+
+    def valid_fields(self, operation: str, fields: list) -> bool:
+        '''
+        Function to verify if the fields are valid
+
+        Args:
+            operation (str): operation to be done
+
+        Returns:
+            bool: True if the fields are valid, False otherwise
+        '''
+
+        valid = (fields[0].text() == '' or fields[1].text() == '' or fields[2].text() == ''
+                 or (fields[3].text() == '' and (fields[4] or operation == 'connect')))
+
+        if valid:
+            self.alert('Preencha todos os campos!')
+            if fields[0].text() == '':
+                fields[0].setFocus()
+            elif fields[1].text() == '':
+                fields[1].setFocus()
+            elif fields[2].text() == '':
+                fields[2].setFocus()
+            elif fields[3].text() == '' and (fields[4] or operation == 'connect'):
+                fields[3].setFocus()
             return False
 
         return True
