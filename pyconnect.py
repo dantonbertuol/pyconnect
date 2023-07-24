@@ -189,8 +189,8 @@ class PyConnect(QWidget):
             return
 
         os.system(
-            f'echo "{self.sudopsw}" | sudo --stdin echo "{psw}" | sudo openconnect --protocol=gp {server} '
-            f'--user={user} --servercert {server_cert} --passwd-on-stdin &')
+            f'echo "{self.sudopsw}" | sudo --stdin echo "{psw.text()}" | sudo openconnect --protocol=gp {server.text()}'
+            f' --user={user.text()} --servercert {server_cert.text()} --passwd-on-stdin &')
         self.layout_buttons.itemAt(0).widget().setEnabled(False)  # Conectar
         self.layout_form.itemAt(8).widget().setEnabled(False)  # Servidor
         self.layout_form.itemAt(9).widget().setEnabled(False)  # Certificado
