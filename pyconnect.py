@@ -221,7 +221,8 @@ class PyConnect(QWidget):
         '''
         Function to disconnect from OpenConnect
         '''
-        os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+        # os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+        os.system(f'echo "{self.sudopsw}" | sudo --stdin killall -e openconnect')
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
         self.layout_form.itemAt(8).widget().setEnabled(True)  # Servidor
         self.layout_form.itemAt(9).widget().setEnabled(True)  # Certificado
@@ -255,7 +256,7 @@ class PyConnect(QWidget):
         '''
         reply = QMessageBox.question(self, 'Sair', 'Deseja sair?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+            os.system(f'echo "{self.sudopsw}" | sudo --stdin killall -e openconnect')
         else:
             event.ignore()
 
