@@ -258,9 +258,24 @@ class PyConnect(QWidget):
             # self.proccess.readyReadStandardError.connect(self.handle_stderr)
             self.proccess.stateChanged.connect(self.handle_state)
             # self.proccess.finished.connect(self.proccess_finished)
-            self.proccess.start("openconnect", [
-                                "--protocol=gp", f"--server={user_info[0]}", f"--user={user_info[2]}",
-                                f"--servercert={user_info[1]}", "--passwd-on-stdin"])
+
+            # self.proccess.start("openconnect", [
+            #                     "--protocol=gp", f"--server={user_info[0]}", f"--user={user_info[2]}",
+            #                     f"--servercert={user_info[1]}", "--passwd-on-stdin"])
+
+            openconnect_command = [
+                "sudo", "-S",
+                "openconnect",
+                "--protocol=gp",
+                f"--server={user_info[0]}",
+                f"--user={user_info[2]}",
+                f"--servercert={user_info[1]}",
+                "--passwd-on-stdin"
+            ]
+            command_str = " ".join(openconnect_command)
+            self.proccess.start("bash", ["-c", command_str])
+
+            self.proccess.write(f"{self.sudopsw}\n".encode())
             self.proccess.write(f"{user_info[3]}\n".encode())
 
         elif command == "disconnect":

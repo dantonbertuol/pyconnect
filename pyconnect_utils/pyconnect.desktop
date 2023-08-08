@@ -3,6 +3,6 @@ Type=Application
 Name=PyConnect
 Icon=pyconnect-icon
 Exec=pyconnect
-Terminal=true
+Terminal=false
 Keywords=VPN;Connect;Pyconnect
 StartupNotify=true
