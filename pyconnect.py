@@ -1,13 +1,17 @@
-import os
 from sys import exit
+import os
+from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QMessageBox, QComboBox, QInputDialog, QCheckBox, QSystemTrayIcon, QMenu, QAction
+    QPushButton, QMessageBox, QComboBox, QInputDialog, QCheckBox, QSystemTrayIcon, QMenu, QAction, \
+    QPlainTextEdit
 from PyQt5.QtGui import QFont, QIcon, QPixmap
-from PyQt5.QtCore import Qt, QFile, QTextStream
+from PyQt5.QtCore import Qt, QFile, QTextStream, QProcess
 from database import Database
 
 ICON_PATH = f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-icon.png'
+WINDOW_WIDTH = 350
+WINDOW_HEIGHT = 350
 
 
 class PyConnect(QWidget):
@@ -41,6 +45,9 @@ class PyConnect(QWidget):
         self.sudopsw: str = ''
         self.tray = QSystemTrayIcon(self)
         self.menu = QMenu(self)
+        self.proccess = QProcess(self)
+        self.log = QPlainTextEdit()
+        self.log.setReadOnly(True)
 
     def window_combobox(self) -> None:
         '''
@@ -108,6 +115,7 @@ class PyConnect(QWidget):
         self.layout_buttons.addWidget(btn_connect, 0, 0)
         self.layout_buttons.addWidget(btn_reconnect, 0, 1)
         self.layout_buttons.addWidget(btn_disconnect, 0, 2)
+        self.layout_buttons.addWidget(self.log, 1, 0, 1, 3)
 
     def window_layout(self) -> None:
         '''
@@ -116,7 +124,7 @@ class PyConnect(QWidget):
         self.layout_.addLayout(self.layout_form)
         self.layout_.addLayout(self.layout_buttons)
         self.setLayout(self.layout_)
-        self.setFixedSize(350, 250)
+        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
     def tray_icon(self) -> None:
         '''
@@ -188,9 +196,8 @@ class PyConnect(QWidget):
         if not self.valid_fields('connect', [server, server_cert, user, psw, True]):
             return
 
-        os.system(
-            f'echo "{self.sudopsw}" | sudo --stdin echo "{psw.text()}" | sudo openconnect --protocol=gp {server.text()}'
-            f' --user={user.text()} --servercert {server_cert.text()} --passwd-on-stdin &')
+        self.start_proccess("connect", [server.text(), server_cert.text(), user.text(), psw.text()])
+
         self.layout_buttons.itemAt(0).widget().setEnabled(False)  # Conectar
         self.layout_form.itemAt(8).widget().setEnabled(False)  # Servidor
         self.layout_form.itemAt(9).widget().setEnabled(False)  # Certificado
@@ -221,8 +228,8 @@ class PyConnect(QWidget):
         '''
         Function to disconnect from OpenConnect
         '''
-        # os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
-        os.system(f'echo "{self.sudopsw}" | sudo --stdin killall -e openconnect')
+        self.start_proccess("disconnect")
+
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
         self.layout_form.itemAt(8).widget().setEnabled(True)  # Servidor
         self.layout_form.itemAt(9).widget().setEnabled(True)  # Certificado
@@ -240,6 +247,56 @@ class PyConnect(QWidget):
         menu_actions[2].setEnabled(False)  # Reconectar
         menu_actions[3].setEnabled(False)  # Desconectar
 
+    def update_log(self, msg: str) -> None:
+        self.log.appendPlainText(msg)
+
+    def start_proccess(self, command: str, user_info: list = []) -> None:
+        if command == "connect":
+            self.proccess.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
+            # self.proccess.readyRead.connect(self.handle_read_ready)
+            # self.proccess.readyReadStandardOutput.connect(self.handle_stdout)
+            # self.proccess.readyReadStandardError.connect(self.handle_stderr)
+            self.proccess.stateChanged.connect(self.handle_state)
+            # self.proccess.finished.connect(self.proccess_finished)
+            self.proccess.start("openconnect", [
+                                "--protocol=gp", f"--server={user_info[0]}", f"--user={user_info[2]}",
+                                f"--servercert={user_info[1]}", "--passwd-on-stdin"])
+            self.proccess.write(f"{user_info[3]}\n".encode())
+
+        elif command == "disconnect":
+            self.proccess.kill()
+            self.proccess.terminate()
+            self.proccess.close()
+
+    def handle_read_ready(self):
+        data = str(self.proccess.readAll(), "utf-8")
+        self.update_log(data)
+
+    def handle_stdout(self):
+        data = self.proccess.readAllStandardOutput()
+        stdout = bytes(data).decode("utf-8")
+        self.update_log(stdout)
+
+    def handle_stderr(self):
+        data = self.proccess.readAllStandardError()
+        stderr = bytes(data).decode("utf-8")
+        self.update_log(stderr)
+
+    def handle_state(self, state):
+        states = {
+            QProcess.ProcessState.NotRunning: 'Not running',
+            QProcess.ProcessState.Starting: 'Starting',
+            QProcess.ProcessState.Running: 'Running'
+        }
+        state_name = states[state]
+        data_atual = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        if state_name == "Not running":
+            self.update_log(f"{data_atual}: Desconectado")
+        if state_name == "Running":
+            self.update_log(f"{data_atual}: Conectado")
+        if state_name == "Starting":
+            self.update_log(f"{data_atual}: Conectando")
+
     def show_window(self) -> None:
         '''
         Function to show the window
@@ -256,7 +313,7 @@ class PyConnect(QWidget):
         '''
         reply = QMessageBox.question(self, 'Sair', 'Deseja sair?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            os.system(f'echo "{self.sudopsw}" | sudo --stdin killall -e openconnect')
+            event.accept()
         else:
             event.ignore()
 
@@ -407,7 +464,8 @@ class PyConnect(QWidget):
         try:
             check_output('openconnect --version', shell=True)
         except CalledProcessError:
-            QMessageBox.critical(self, 'OpenConnect', 'Openconnect não está instalado! Por favor instale e tente novamente.')
+            QMessageBox.critical(self, 'OpenConnect',
+                                 'Openconnect não está instalado! Por favor instale e tente novamente.')
             exit()
 
 
