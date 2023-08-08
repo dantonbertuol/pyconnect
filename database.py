@@ -13,7 +13,7 @@ class Database():
         '''
         self.db = sqlite3.connect('pyconnect.db')
 
-    def create_struct(self):
+    def create_struct(self) -> None:
         '''
         Create database structure
         '''
@@ -28,9 +28,18 @@ class Database():
             );
         ''')
 
+        # create table last user used in application
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS last_user (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user VARCHAR(100),
+                date DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        ''')
+
         self.db.commit()
 
-    def insert(self, server: str, user: str, password: str, server_cert: str):
+    def insert_user(self, server: str, user: str, password: str, server_cert: str) -> None:
         '''
         Insert new user in database
 
@@ -47,7 +56,7 @@ class Database():
         ''')
         self.db.commit()
 
-    def select(self, user: str) -> list:
+    def select_user(self, user: str) -> list:
         '''
         Select user from database
 
@@ -63,7 +72,7 @@ class Database():
         ''')
         return cursor.fetchall()
 
-    def select_all(self) -> list:
+    def select_all_users(self) -> list:
         '''
         Select all users from database
 
@@ -73,5 +82,32 @@ class Database():
         cursor = self.db.cursor()
         cursor.execute('''
             SELECT user FROM user;
+        ''')
+        return cursor.fetchall()
+
+    def insert_last_user(self, user: str) -> None:
+        '''
+        Insert last user used in application
+
+        Args:
+            user (str): user name
+        '''
+        cursor = self.db.cursor()
+        cursor.execute(f'''
+            INSERT INTO last_user (user)
+            VALUES ('{user}');
+        ''')
+        self.db.commit()
+
+    def select_last_user(self) -> list:
+        '''
+        Select last user used in application
+
+        Returns:
+            list: list of users
+        '''
+        cursor = self.db.cursor()
+        cursor.execute('''
+            SELECT user FROM last_user ORDER BY date DESC LIMIT 1;
         ''')
         return cursor.fetchall()

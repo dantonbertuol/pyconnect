@@ -42,13 +42,13 @@ class PyConnect(QWidget):
         self.tray = QSystemTrayIcon(self)
         self.menu = QMenu(self)
 
-    def window_combobox(self):
+    def window_combobox(self) -> None:
         '''
         Function to create the combobox with the saved users
         '''
         cb_user = QComboBox()
         label_saved_user = QLabel('Usuários')
-        users = self.database.select_all()
+        users = self.database.select_all_users()
         cb_user.addItem('Selecione...')
         for user in users:
             cb_user.addItem(user[0])
@@ -56,7 +56,7 @@ class PyConnect(QWidget):
         self.layout_form.addWidget(label_saved_user, 1, 0, 1, 1)
         self.layout_form.addWidget(cb_user, 1, 3, 1, 6)
 
-    def window_form(self):
+    def window_form(self) -> None:
         '''
         Function to create the form
         '''
@@ -96,7 +96,7 @@ class PyConnect(QWidget):
         btn_save = QPushButton('Salvar')
         self.layout_form.addWidget(btn_save, 9, 5, 1, 4, Qt.AlignCenter)
 
-    def window_buttons(self):
+    def window_buttons(self) -> None:
         '''
         Function to create the buttons
         '''
@@ -109,7 +109,7 @@ class PyConnect(QWidget):
         self.layout_buttons.addWidget(btn_reconnect, 0, 1)
         self.layout_buttons.addWidget(btn_disconnect, 0, 2)
 
-    def window_layout(self):
+    def window_layout(self) -> None:
         '''
         Function to create the window layout
         '''
@@ -118,7 +118,7 @@ class PyConnect(QWidget):
         self.setLayout(self.layout_)
         self.setFixedSize(350, 250)
 
-    def tray_icon(self):
+    def tray_icon(self) -> None:
         '''
         Function to create the tray icon
         '''
@@ -130,15 +130,15 @@ class PyConnect(QWidget):
         action_open.setEnabled(True)
 
         action_connect = QAction('Conectar', self)
-        action_connect.triggered.connect(self.connect)
+        action_connect.triggered.connect(self.connect_server)
         action_connect.setEnabled(True)
 
         action_reconnect = QAction('Reconectar', self)
-        action_reconnect.triggered.connect(self.reconnect)
+        action_reconnect.triggered.connect(self.reconnect_server)
         action_reconnect.setEnabled(False)
 
         action_disconnect = QAction('Desconectar', self)
-        action_disconnect.triggered.connect(self.disconnect)
+        action_disconnect.triggered.connect(self.disconnect_server)
         action_disconnect.setEnabled(False)
 
         action_exit = QAction('Sair', self)
@@ -152,7 +152,7 @@ class PyConnect(QWidget):
 
         self.tray.setContextMenu(self.menu)
 
-    def save(self):
+    def save(self) -> None:
         '''
         Function to save the user data
         '''
@@ -162,7 +162,7 @@ class PyConnect(QWidget):
         psw = self.layout_form.itemAt(11).widget()
         check_psw = self.layout_form.itemAt(12).widget().isChecked()
 
-        if len(self.database.select(user.text())) > 0:
+        if len(self.database.select_user(user.text())) > 0:
             self.alert('Usuário já existe!')
             return
 
@@ -172,11 +172,11 @@ class PyConnect(QWidget):
         if not self.valid_fields('save', [server, server_cert, user, psw, check_psw]):
             return
 
-        self.database.insert(server.text(), user.text(), psw.text(), server_cert.text())
+        self.database.insert_user(server.text(), user.text(), psw.text(), server_cert.text())
         self.alert('Salvo com sucesso!')
         self.cb_add(user.text())
 
-    def connect(self):
+    def connect_server(self) -> None:
         '''
         Function to connect to the OpenConnect
         '''
@@ -208,18 +208,21 @@ class PyConnect(QWidget):
         menu_actions[2].setEnabled(True)  # Reconectar
         menu_actions[3].setEnabled(True)  # Desconectar
 
-    def reconnect(self):
+        self.database.insert_last_user(user.text())
+
+    def reconnect_server(self) -> None:
         '''
         Function to reconnect to OpenConnect
         '''
-        os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
-        self.connect()
+        self.disconnect_server()
+        self.connect_server()
 
-    def disconnect(self):
+    def disconnect_server(self) -> None:
         '''
         Function to disconnect from OpenConnect
         '''
-        os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+        # os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+        os.system(f'echo "{self.sudopsw}" | sudo --stdin killall -e openconnect')
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
         self.layout_form.itemAt(8).widget().setEnabled(True)  # Servidor
         self.layout_form.itemAt(9).widget().setEnabled(True)  # Certificado
@@ -237,14 +240,14 @@ class PyConnect(QWidget):
         menu_actions[2].setEnabled(False)  # Reconectar
         menu_actions[3].setEnabled(False)  # Desconectar
 
-    def show_window(self):
+    def show_window(self) -> None:
         '''
         Function to show the window
         '''
         self.setVisible(True)
         self.activateWindow()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
         '''
         Function called when the window is closed
 
@@ -253,11 +256,11 @@ class PyConnect(QWidget):
         '''
         reply = QMessageBox.question(self, 'Sair', 'Deseja sair?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            os.system(f'echo "{self.sudopsw}" | sudo --stdin kill -9 $(pidof openconnect)')
+            os.system(f'echo "{self.sudopsw}" | sudo --stdin killall -e openconnect')
         else:
             event.ignore()
 
-    def hideEvent(self, event):
+    def hideEvent(self, event) -> None:
         '''
         Function called when the window is hidden
 
@@ -266,7 +269,7 @@ class PyConnect(QWidget):
         '''
         self.setVisible(False)
 
-    def sudo_psw(self):
+    def sudo_psw(self) -> None:
         '''
         Function to get the sudo password from the user
         '''
@@ -284,7 +287,7 @@ class PyConnect(QWidget):
             else:
                 exit()
 
-    def connect_buttons(self):
+    def connect_buttons(self) -> None:
         '''
         Function to connect the buttons to their respective functions
         '''
@@ -292,18 +295,18 @@ class PyConnect(QWidget):
         btn_save.clicked.connect(self.save)
 
         btn_connect = self.layout_buttons.itemAt(0).widget()
-        btn_connect.clicked.connect(self.connect)
+        btn_connect.clicked.connect(self.connect_server)
 
         btn_reconnect = self.layout_buttons.itemAt(1).widget()
-        btn_reconnect.clicked.connect(self.reconnect)
+        btn_reconnect.clicked.connect(self.reconnect_server)
 
         btn_disconnect = self.layout_buttons.itemAt(2).widget()
-        btn_disconnect.clicked.connect(self.disconnect)
+        btn_disconnect.clicked.connect(self.disconnect_server)
 
         cb_user = self.layout_form.itemAt(1).widget()
         cb_user.currentIndexChanged.connect(self.cb_change)
 
-    def cb_change(self):
+    def cb_change(self) -> None:
         '''
         Function to change the information in the form when the user changes
         '''
@@ -315,13 +318,13 @@ class PyConnect(QWidget):
             self.layout_form.itemAt(11).widget().setText('')  # Senha
             return
 
-        infos = self.database.select(cb_user.currentText())
+        infos = self.database.select_user(cb_user.currentText())
         self.layout_form.itemAt(8).widget().setText(infos[0][0])
         self.layout_form.itemAt(9).widget().setText(infos[0][1])
         self.layout_form.itemAt(10).widget().setText(infos[0][2])
         self.layout_form.itemAt(11).widget().setText(infos[0][3])
 
-    def cb_add(self, user: str):
+    def cb_add(self, user: str) -> None:
         '''
         Function to add a user to the combobox
 
@@ -332,7 +335,16 @@ class PyConnect(QWidget):
         cb_user.addItem(user)
         cb_user.setCurrentIndex(cb_user.findText(user))
 
-    def alert(self, text: str):
+    def load_last_user(self) -> None:
+        '''
+        Function to load the last user used in the application
+        '''
+        last_user = self.database.select_last_user()
+        cb_user = self.layout_form.itemAt(1).widget()
+        if len(last_user) > 0:
+            cb_user.setCurrentIndex(cb_user.findText(last_user[0][0]))
+
+    def alert(self, text: str) -> None:
         '''
         Function to show an alert
 
@@ -388,9 +400,20 @@ class PyConnect(QWidget):
 
         return True
 
+    def verify_openconnect(self) -> None:
+        '''
+        Function to verify if openconnect is installed
+        '''
+        try:
+            check_output('openconnect --version', shell=True)
+        except CalledProcessError:
+            QMessageBox.critical(self, 'OpenConnect', 'Openconnect não está instalado! Por favor instale e tente novamente.')
+            exit()
+
 
 if __name__ == '__main__':
     pyconnect = PyConnect()
+    pyconnect.verify_openconnect()
     pyconnect.window_combobox()
     pyconnect.window_form()
     pyconnect.window_buttons()
@@ -399,4 +422,5 @@ if __name__ == '__main__':
     pyconnect.show()
     pyconnect.sudo_psw()
     pyconnect.tray_icon()
+    pyconnect.load_last_user()
     pyconnect.app.exec_()
