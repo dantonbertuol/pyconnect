@@ -400,9 +400,20 @@ class PyConnect(QWidget):
 
         return True
 
+    def verify_openconnect(self) -> None:
+        '''
+        Function to verify if openconnect is installed
+        '''
+        try:
+            check_output('openconnect --version', shell=True)
+        except CalledProcessError:
+            QMessageBox.critical(self, 'OpenConnect', 'Openconnect não está instalado! Por favor instale e tente novamente.')
+            exit()
+
 
 if __name__ == '__main__':
     pyconnect = PyConnect()
+    pyconnect.verify_openconnect()
     pyconnect.window_combobox()
     pyconnect.window_form()
     pyconnect.window_buttons()
