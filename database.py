@@ -1,5 +1,8 @@
 import sqlite3
 import os
+from pwd import getpwnam
+
+HOME_PATH = getpwnam(os.getlogin()).pw_dir
 
 
 class Database():
@@ -11,7 +14,7 @@ class Database():
         '''
         Constructor to init database
         '''
-        self.db = sqlite3.connect(f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect.db')
+        self.db = sqlite3.connect(f'{HOME_PATH}/.local/bin/pyconnect_utils/pyconnect.db')
 
     def create_struct(self) -> None:
         '''
