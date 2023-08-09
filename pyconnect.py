@@ -1,7 +1,8 @@
-from sys import exit
+import sys
 import os
+from pwd import getpwnam
 from datetime import datetime
-from subprocess import check_output, CalledProcessError
+from subprocess import check_output, CalledProcessError, run
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
     QPushButton, QMessageBox, QComboBox, QInputDialog, QCheckBox, QSystemTrayIcon, QMenu, QAction, \
     QPlainTextEdit
@@ -9,9 +10,22 @@ from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtCore import Qt, QFile, QTextStream, QProcess
 from database import Database
 
-ICON_PATH = f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-icon.png'
+HOME_PATH = getpwnam(os.getlogin()).pw_dir
+ICON_PATH = f'{HOME_PATH}/.local/bin/pyconnect_utils/pyconnect-icon.png'
 WINDOW_WIDTH = 350
 WINDOW_HEIGHT = 350
+
+
+def get_executable():
+    if hasattr(sys, 'frozen') or hasattr(sys, 'importers'):
+        return [os.path.abspath(sys.executable)]
+
+    if os.path.isabs(sys.argv[0]):
+        path = sys.argv[0]
+    else:
+        path = os.path.abspath(sys.argv[0])
+
+    return [sys.executable, path]
 
 
 class PyConnect(QWidget):
@@ -30,7 +44,7 @@ class PyConnect(QWidget):
         super().__init__()
         self.app.setApplicationName('PyConnect')
 
-        file = QFile(f'{os.environ.get("HOME")}/.local/bin/pyconnect_utils/pyconnect-dark.qss')
+        file = QFile(f'{HOME_PATH}/.local/bin/pyconnect_utils/pyconnect-dark.qss')
         file.open(QFile.ReadOnly | QFile.Text)
         stream = QTextStream(file)
 
@@ -259,24 +273,24 @@ class PyConnect(QWidget):
             self.proccess.stateChanged.connect(self.handle_state)
             # self.proccess.finished.connect(self.proccess_finished)
 
-            # self.proccess.start("openconnect", [
-            #                     "--protocol=gp", f"--server={user_info[0]}", f"--user={user_info[2]}",
-            #                     f"--servercert={user_info[1]}", "--passwd-on-stdin"])
-
-            openconnect_command = [
-                "sudo", "-S",
-                "openconnect",
-                "--protocol=gp",
-                f"--server={user_info[0]}",
-                f"--user={user_info[2]}",
-                f"--servercert={user_info[1]}",
-                "--passwd-on-stdin"
-            ]
-            command_str = " ".join(openconnect_command)
-            self.proccess.start("bash", ["-c", command_str])
-
-            self.proccess.write(f"{self.sudopsw}\n".encode())
+            self.proccess.start("openconnect", [
+                                "--protocol=gp", f"--server={user_info[0]}", f"--user={user_info[2]}",
+                                f"--servercert={user_info[1]}", "--passwd-on-stdin"])
             self.proccess.write(f"{user_info[3]}\n".encode())
+
+            # openconnect_command = [
+            #     "sudo", "-S",
+            #     "openconnect",
+            #     "--protocol=gp",
+            #     f"--server={user_info[0]}",
+            #     f"--user={user_info[2]}",
+            #     f"--servercert={user_info[1]}",
+            #     "--passwd-on-stdin"
+            # ]
+            # command_str = " ".join(openconnect_command)
+            # self.proccess.start("bash", ["-c", command_str])
+
+            # self.proccess.write(f"{self.sudopsw}\n".encode())
 
         elif command == "disconnect":
             self.proccess.kill()
@@ -345,19 +359,20 @@ class PyConnect(QWidget):
         '''
         Function to get the sudo password from the user
         '''
-        while True:
-            text, ok = QInputDialog().getText(self, 'PyConnect', 'Digite a senha do root:', QLineEdit.Password)
-            if ok:
-                if text == '':
-                    self.alert('Digite sua senha!')
-                else:
-                    if self.verify_sudo(text):
-                        self.sudopsw = text
-                        break
+        if os.environ.get("USER") != "root":
+            while True:
+                text, ok = QInputDialog().getText(self, 'PyConnect', 'Digite a senha do root:', QLineEdit.Password)
+                if ok:
+                    if text == '':
+                        self.alert('Digite sua senha!')
                     else:
-                        self.alert('Senha incorreta!')
-            else:
-                exit()
+                        if self.verify_sudo(text):
+                            self.sudopsw = text
+                            break
+                        else:
+                            self.alert('Senha incorreta!')
+                else:
+                    sys.exit()
 
     def connect_buttons(self) -> None:
         '''
@@ -481,19 +496,29 @@ class PyConnect(QWidget):
         except CalledProcessError:
             QMessageBox.critical(self, 'OpenConnect',
                                  'Openconnect não está instalado! Por favor instale e tente novamente.')
-            exit()
+            sys.exit()
+
+    def run_as_sudo(self):
+        '''
+        Function to run the application as sudo
+        '''
+        if os.environ.get("USER") != "root":
+            executable = get_executable()
+            run(["sudo", "-S"] + executable, input=self.sudopsw.encode())
+            sys.exit(1)
 
 
 if __name__ == '__main__':
     pyconnect = PyConnect()
     pyconnect.verify_openconnect()
+    pyconnect.sudo_psw()
+    pyconnect.run_as_sudo()
     pyconnect.window_combobox()
     pyconnect.window_form()
     pyconnect.window_buttons()
     pyconnect.window_layout()
     pyconnect.connect_buttons()
     pyconnect.show()
-    pyconnect.sudo_psw()
     pyconnect.tray_icon()
     pyconnect.load_last_user()
     pyconnect.app.exec_()
