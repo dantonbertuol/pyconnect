@@ -4,8 +4,7 @@ from pwd import getpwnam
 from datetime import datetime
 from subprocess import check_output, CalledProcessError, run
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QMessageBox, QComboBox, QInputDialog, QCheckBox, QSystemTrayIcon, QMenu, QAction, \
-    QPlainTextEdit
+    QPushButton, QMessageBox, QComboBox, QInputDialog, QCheckBox, QSystemTrayIcon, QPlainTextEdit
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtCore import Qt, QFile, QTextStream, QProcess
 from database import Database
@@ -58,7 +57,6 @@ class PyConnect(QWidget):
         self.database.create_struct()
         self.sudopsw: str = ''
         self.tray = QSystemTrayIcon(self)
-        self.menu = QMenu(self)
         self.proccess = QProcess(self)
         self.log = QPlainTextEdit()
         self.log.setReadOnly(True)
@@ -147,33 +145,6 @@ class PyConnect(QWidget):
         self.tray.setIcon(QIcon(ICON_PATH))
         self.tray.setVisible(True)
 
-        action_open = QAction('Abrir', self)
-        action_open.triggered.connect(self.show_window)
-        action_open.setEnabled(True)
-
-        action_connect = QAction('Conectar', self)
-        action_connect.triggered.connect(self.connect_server)
-        action_connect.setEnabled(True)
-
-        action_reconnect = QAction('Reconectar', self)
-        action_reconnect.triggered.connect(self.reconnect_server)
-        action_reconnect.setEnabled(False)
-
-        action_disconnect = QAction('Desconectar', self)
-        action_disconnect.triggered.connect(self.disconnect_server)
-        action_disconnect.setEnabled(False)
-
-        action_exit = QAction('Sair', self)
-        action_exit.triggered.connect(self.app.quit)
-
-        self.menu.addAction(action_open)
-        self.menu.addAction(action_connect)
-        self.menu.addAction(action_reconnect)
-        self.menu.addAction(action_disconnect)
-        self.menu.addAction(action_exit)
-
-        self.tray.setContextMenu(self.menu)
-
     def save(self) -> None:
         '''
         Function to save the user data
@@ -224,11 +195,6 @@ class PyConnect(QWidget):
         self.layout_buttons.itemAt(1).widget().setEnabled(True)  # Reconectar
         self.layout_buttons.itemAt(2).widget().setEnabled(True)  # Desconectar
 
-        menu_actions = self.menu.actions()
-        menu_actions[1].setEnabled(False)  # Conectar
-        menu_actions[2].setEnabled(True)  # Reconectar
-        menu_actions[3].setEnabled(True)  # Desconectar
-
         self.database.insert_last_user(user.text())
 
     def reconnect_server(self) -> None:
@@ -255,11 +221,6 @@ class PyConnect(QWidget):
 
         self.layout_buttons.itemAt(1).widget().setEnabled(False)  # Reconectar
         self.layout_buttons.itemAt(2).widget().setEnabled(False)  # Desconectar
-
-        menu_actions = self.menu.actions()
-        menu_actions[1].setEnabled(True)  # Conectar
-        menu_actions[2].setEnabled(False)  # Reconectar
-        menu_actions[3].setEnabled(False)  # Desconectar
 
     def update_log(self, msg: str) -> None:
         self.log.appendPlainText(msg)
@@ -326,13 +287,6 @@ class PyConnect(QWidget):
         if state_name == "Starting":
             self.update_log(f"{data_atual}: Conectando")
 
-    def show_window(self) -> None:
-        '''
-        Function to show the window
-        '''
-        self.setVisible(True)
-        self.activateWindow()
-
     def closeEvent(self, event) -> None:
         '''
         Function called when the window is closed
@@ -345,15 +299,6 @@ class PyConnect(QWidget):
             event.accept()
         else:
             event.ignore()
-
-    def hideEvent(self, event) -> None:
-        '''
-        Function called when the window is hidden
-
-        Args:
-            event: event
-        '''
-        self.setVisible(False)
 
     def sudo_psw(self) -> None:
         '''
