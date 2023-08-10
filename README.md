@@ -19,6 +19,7 @@ Linux client to connect vpn using openconnect.
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#build">Build</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -45,6 +46,7 @@ Some software and libraries are needed to run the project.
 ### Prerequisites
 1. Python >= 3.8
 2. PyQt5 >= 5.15.9
+3. Openconnect >= 9.01
 ### Installation
 1. Python - https://www.python.org/downloads/
     ``` sh 
@@ -57,6 +59,18 @@ Some software and libraries are needed to run the project.
 3. Openconnect - https://www.infradead.org/openconnect/
     ``` sh
     sudo apt install openconnect
+    ```
+4. PyConnect
+    ``` sh
+    git clone https://github.com/dantonbertuol/pyconnect.git
+    cd pyconnect
+    ./install.sh
+    ```
+
+### Build
+1. Build
+    ``` sh
+    ./build.sh
     ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
