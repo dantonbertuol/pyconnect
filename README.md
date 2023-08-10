@@ -76,7 +76,7 @@ Some software and libraries are needed to run the project.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Usage 
-
+![Screenshot App](https://github.com/dantonbertuol/pyconnect/blob/master/pyconnect_gui.png)
 <p align="right">(<a href="#readme-top">back to top</a>)</p> 
 
 <!-- ## Roadmap
