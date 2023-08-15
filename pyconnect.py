@@ -1,6 +1,6 @@
 import sys
 import os
-from pwd import getpwnam
+from pwd import getpwnam  # type: ignore
 from datetime import datetime
 from subprocess import check_output, CalledProcessError, run
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QLabel, QLineEdit, \
@@ -15,7 +15,12 @@ WINDOW_WIDTH = 350
 WINDOW_HEIGHT = 350
 
 
-def get_executable():
+def get_executable() -> list:
+    '''
+    Function to get the executable path
+    Returns:
+        list: executable path
+    '''
     if hasattr(sys, 'frozen') or hasattr(sys, 'importers'):
         return [os.path.abspath(sys.executable)]
 
@@ -44,7 +49,7 @@ class PyConnect(QWidget):
         self.app.setApplicationName('PyConnect')
 
         file = QFile(f'{HOME_PATH}/.local/bin/pyconnect_utils/pyconnect-dark.qss')
-        file.open(QFile.ReadOnly | QFile.Text)
+        file.open(QFile.ReadOnly | QFile.Text)  # type: ignore
         stream = QTextStream(file)
 
         self.app.setStyleSheet(stream.readAll())
@@ -81,13 +86,14 @@ class PyConnect(QWidget):
         '''
         label_title = QLabel('PyConnect')
         label_icon = QLabel()
-        label_icon.setPixmap(QPixmap(ICON_PATH).scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        label_icon.setPixmap(QPixmap(ICON_PATH).scaled(
+            50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))  # type: ignore
         myFont = QFont()
         myFont.setBold(True)
         myFont.setPointSize(20)
         label_title.setFont(myFont)
-        self.layout_form.addWidget(label_icon, 0, 0, 1, 1, Qt.AlignCenter)
-        self.layout_form.addWidget(label_title, 0, 1, 1, 6, Qt.AlignCenter)
+        self.layout_form.addWidget(label_icon, 0, 0, 1, 1, Qt.AlignCenter)  # type: ignore
+        self.layout_form.addWidget(label_title, 0, 1, 1, 6, Qt.AlignCenter)  # type: ignore
 
         label_server = QLabel('Servidor')
         label_user = QLabel('Usuário')
@@ -113,7 +119,7 @@ class PyConnect(QWidget):
         self.layout_form.addWidget(check_save_password, 9, 4)
 
         btn_save = QPushButton('Salvar')
-        self.layout_form.addWidget(btn_save, 9, 5, 1, 4, Qt.AlignCenter)
+        self.layout_form.addWidget(btn_save, 9, 5, 1, 4, Qt.AlignCenter)  # type: ignore
 
     def window_buttons(self) -> None:
         '''
@@ -223,56 +229,43 @@ class PyConnect(QWidget):
         self.layout_buttons.itemAt(2).widget().setEnabled(False)  # Desconectar
 
     def update_log(self, msg: str) -> None:
+        '''
+        Function to update the log
+
+        Args:
+            msg (str): Message to be added to the log
+        '''
         self.log.appendPlainText(msg)
 
     def start_proccess(self, command: str, user_info: list = []) -> None:
+        '''
+        Function to start proccess on qprocess
+
+        Args:
+            command (str): Command to be executed
+            user_info (list, optional): user info to connect. Defaults to [].
+        '''
         if command == "connect":
             self.proccess.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
-            # self.proccess.readyRead.connect(self.handle_read_ready)
-            # self.proccess.readyReadStandardOutput.connect(self.handle_stdout)
-            # self.proccess.readyReadStandardError.connect(self.handle_stderr)
             self.proccess.stateChanged.connect(self.handle_state)
-            # self.proccess.finished.connect(self.proccess_finished)
 
             self.proccess.start("openconnect", [
                                 "--protocol=gp", f"--server={user_info[0]}", f"--user={user_info[2]}",
                                 f"--servercert={user_info[1]}", "--passwd-on-stdin"])
             self.proccess.write(f"{user_info[3]}\n".encode())
 
-            # openconnect_command = [
-            #     "sudo", "-S",
-            #     "openconnect",
-            #     "--protocol=gp",
-            #     f"--server={user_info[0]}",
-            #     f"--user={user_info[2]}",
-            #     f"--servercert={user_info[1]}",
-            #     "--passwd-on-stdin"
-            # ]
-            # command_str = " ".join(openconnect_command)
-            # self.proccess.start("bash", ["-c", command_str])
-
-            # self.proccess.write(f"{self.sudopsw}\n".encode())
-
         elif command == "disconnect":
             self.proccess.kill()
             self.proccess.terminate()
             self.proccess.close()
 
-    def handle_read_ready(self):
-        data = str(self.proccess.readAll(), "utf-8")
-        self.update_log(data)
+    def handle_state(self, state: QProcess.ProcessState) -> None:
+        '''
+        Function to handle the state of the proccess
 
-    def handle_stdout(self):
-        data = self.proccess.readAllStandardOutput()
-        stdout = bytes(data).decode("utf-8")
-        self.update_log(stdout)
-
-    def handle_stderr(self):
-        data = self.proccess.readAllStandardError()
-        stderr = bytes(data).decode("utf-8")
-        self.update_log(stderr)
-
-    def handle_state(self, state):
+        Args:
+            state (QProcess.ProcessState): State of the proccess
+        '''
         states = {
             QProcess.ProcessState.NotRunning: 'Not running',
             QProcess.ProcessState.Starting: 'Starting',
