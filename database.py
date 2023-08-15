@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from pwd import getpwnam
+from pwd import getpwnam  # type: ignore
 
 HOME_PATH = getpwnam(os.getlogin()).pw_dir
 
