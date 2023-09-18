@@ -1,5 +1,6 @@
 import sys
 import os
+from time import sleep
 from pwd import getpwnam  # type: ignore
 from datetime import datetime
 from subprocess import check_output, CalledProcessError, run
@@ -214,7 +215,17 @@ class PyConnect(QWidget):
         '''
         Function to disconnect from OpenConnect
         '''
+
+        disconnect = QMessageBox.question(self, 'Desconectar', 'Deseja desconectar?',
+                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if disconnect == QMessageBox.No:
+            return
+
         self.start_proccess("disconnect")
+
+        self.restart_network_service()
+
+        sleep(5)
 
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
         self.layout_form.itemAt(8).widget().setEnabled(True)  # Servidor
@@ -444,6 +455,9 @@ class PyConnect(QWidget):
             executable = get_executable()
             run(["sudo", "-S"] + executable, input=self.sudopsw.encode())
             sys.exit(1)
+
+    def restart_network_service(self):
+        self.proccess.start("systemctl", ["restart", "NetworkManager.service"])
 
 
 if __name__ == '__main__':
