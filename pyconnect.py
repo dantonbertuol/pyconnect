@@ -225,6 +225,8 @@ class PyConnect(QWidget):
 
         self.restart_network_service()
 
+        self.update_log("Aguarde 5 segundos para conectar novamente...")
+
         sleep(5)
 
         self.layout_buttons.itemAt(0).widget().setEnabled(True)  # Conectar
@@ -447,7 +449,7 @@ class PyConnect(QWidget):
                                  'Openconnect não está instalado! Por favor instale e tente novamente.')
             sys.exit()
 
-    def run_as_sudo(self):
+    def run_as_sudo(self) -> None:
         '''
         Function to run the application as sudo
         '''
@@ -456,7 +458,10 @@ class PyConnect(QWidget):
             run(["sudo", "-S"] + executable, input=self.sudopsw.encode())
             sys.exit(1)
 
-    def restart_network_service(self):
+    def restart_network_service(self) -> None:
+        '''
+        Function to restart the network service
+        '''
         self.proccess.start("systemctl", ["restart", "NetworkManager.service"])
 
 
